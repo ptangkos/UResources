@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jobs</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="topnav">
+        <h2>UResources</h2>
+        <a href="/profile">
+            <button class="login-btn">Profile</button>
+        </a>
+    </div>
+
+    <ul>
+        <li><a href="/loggedhome">Home</a></li>
+        <li><a href="/buysell">Buy & Sell</a></li>
+        <li><a href="rentrides">Rent & Rides</a></li>
+        <li><a class="active" href="/jobs">Jobs</a></li>
+    </ul>
+
+    <div class="main-content">
+        <h2>Jobs</h2>
+        <button id="postJobBtn">Post Job</button>
+
+        <input type="text" id="searchBar" placeholder="search jobs" onkeyup="searchJobs()">
+
+
+        <div id="jobModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Post a Job</h2>
+                <form id="jobForm">
+                    <label for="jobTitle">Job Title:</label>
+                    <input type="text" id="jobTitle" name="jobTitle" required><br><br>
+
+                    <label for="contactInfo">Contact Information:</label>
+                    <input type="text" id="contactInfo" name="contactInfo" required><br><br>
+
+                    <label for="jobDescription">Job Description:</label>
+                    <textarea id="jobDescription" name="jobDescription" required></textarea><br><br>
+                    
+                    <label for="jobImage">Upload Image (Optional):</label>
+                    <input type="file" id="jobImage" name="jobImage" accept="image/*"><br><br>
+
+                    <button type="submit">Submit</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="jobsSection">
+            <h3>Job Listings</h3>
+        </div>
+        <button onclick="location.href='/card_index'" class="redirect-btn">Go to Card Index</button>
+
+    </div>
+
+    <script>
+        var jobModal = document.getElementById("jobModal");
+        var postJobBtn = document.getElementById("postJobBtn");
+        var span = document.getElementsByClassName("close")[0];
+
+        postJobBtn.onclick = function() {
+            jobModal.style.display = "block";
+        }
+
+        span.onclick = function() {
+            jobModal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == jobModal) {
+                jobModal.style.display = "none";
+            }
+        }
+
+        function displayJobs() {
+            const jobsSection = document.getElementById("jobsSection");
+            jobsSection.innerHTML = '<h3>Job Listings</h3>';
+
+            const jobs = JSON.parse(localStorage.getItem("jobs")) || [];
+            jobs.forEach((job, index) => {
+                const newJob = document.createElement("div");
+                newJob.classList.add("item");
+
+                if (job.image) {
+                    const image = document.createElement("img");
+                    image.src = job.image;
+                    newJob.appendChild(image);
+                }
+
+                const titleElem = document.createElement("h3");
+                titleElem.textContent = "Job Title: " + job.title;
+                newJob.appendChild(titleElem);
+
+                const contactElem = document.createElement("p");
+                contactElem.textContent = "Contact Information: " + job.contact;
+                newJob.appendChild(contactElem);
+
+                const descElem = document.createElement("p");
+                descElem.textContent = "Job Description: " + job.description;
+                newJob.appendChild(descElem);
+
+
+                const deleteBtn = document.createElement("button");
+                deleteBtn.textContent = "Delete Job";
+                deleteBtn.onclick = function() {
+                    deleteJob(index);
+                };
+                newJob.appendChild(deleteBtn);
+
+                jobsSection.appendChild(newJob);
+            });
+        }
+
+        function deleteJob(index) {
+            const jobs = JSON.parse(localStorage.getItem("jobs")) || [];
+            jobs.splice(index, 1);
+            localStorage.setItem("jobs", JSON.stringify(jobs));
+            displayJobs();
+        }
+
+        document.getElementById("jobForm").onsubmit = function(e) {
+            e.preventDefault();
+
+            const jobTitle = document.getElementById("jobTitle").value;
+            const contactInfo = document.getElementById("contactInfo").value;
+            const jobDescription = document.getElementById("jobDescription").value;
+            const jobImage = document.getElementById("jobImage").files[0];
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageBase64 = e.target.result;
+                const jobs = JSON.parse(localStorage.getItem("jobs")) || [];
+
+                const newJob = {
+                    title: jobTitle,
+                    contact: contactInfo,
+                    description: jobDescription,
+                    image: imageBase64
+                };
+
+                jobs.push(newJob);
+                localStorage.setItem("jobs", JSON.stringify(jobs));
+
+                displayJobs();
+
+                jobModal.style.display = "none";
+                document.getElementById("jobForm").reset();
+            };
+
+            if (jobImage) {
+                reader.readAsDataURL(jobImage);
+            }
+        };
+
+        function searchJobs() {
+            const input = document.getElementById("searchBar").value.toLowerCase();
+            const jobs = document.getElementsByClassName("item");
+
+            Array.from(jobs).forEach(function(job) {
+                const jobTitle = job.querySelector("h3").textContent.toLowerCase();
+                const jobDescription = job.querySelector("p").textContent.toLowerCase();
+
+                if (jobTitle.includes(input) || jobDescription.includes(input)) {
+                    job.style.display = "";
+                } else {
+                    job.style.display = "none";
+                }
+            });
+        }
+
+        window.onload = displayJobs;
+    </script>
+</body>
+</html>

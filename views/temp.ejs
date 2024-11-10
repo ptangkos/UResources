@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buy&Sell</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class = "topnav">
+        <h2>UResources</h2>
+        <a href="/profile">
+            <button class="login-btn">Profile</button>
+        </a>
+    </div>
+
+    <ul>
+        <li><a href="/loggedhome">Home</a></li>
+        <li><a class="active" href="/buysell">Buy & Sell</a></li>
+        <li><a href="rentrides">Rent & Rides</a></li>
+        <li><a href="/jobs">Jobs</a></li>
+    </ul>
+
+    <div class="main-content">
+        <h2>BUY & SELL</h2>
+        <button id="addItemBtn">Add Item</button>
+
+        <div id="myModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Add Item</h2>
+                <form id="itemForm">
+                    <label for="itemName">Item Name:</label>
+                    <input type="text" id="itemName" name="itemName" required><br><br>
+
+                    <label for="itemPrice">Price: $</label>
+                    <input type="text" id="itemPrice" name="itemPrice" required><br><br>
+
+                    <label for="itemDescription">Description:</label>
+                    <textarea id="itemDescription" name="itemDescription" required></textarea><br><br>
+
+                    <label for="itemContact">Contact Information:</label>
+                    <input type="text" id="itemContact" name="itemContact" required><br><br>
+
+                    <label for="itemImage">Upload Image:</label>
+                    <input type="file" id="itemImage" name="itemImage" accept="image/*" required><br><br>
+
+                    <button type="submit">Submit</button>
+                </form>
+            </div>
+        </div>
+        <div id="itemsSection">
+            <h3>Added Items</h3>
+        </div>
+        <button onclick="location.href='/card_index'" class="redirect-btn">Go to Card Index</button>
+
+    </div>
+
+    <script>
+        var modal = document.getElementById("myModal");
+        var btn = document.getElementById("addItemBtn");
+        var span = document.getElementsByClassName("close")[0];
+
+        btn.onclick = function() {
+            modal.style.display = "block";
+        }
+
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        function displayItems() {
+            const itemsSection = document.getElementById("itemsSection");
+            itemsSection.innerHTML = '<h3>Added Items</h3>';
+
+            const items = JSON.parse(localStorage.getItem("items")) || [];
+            items.forEach((item, index) => {
+                const newItem = document.createElement("div");
+                newItem.classList.add("item");
+
+                if (item.image) {
+                    const image = document.createElement("img");
+                    image.src = item.image;
+                    newItem.appendChild(image);
+                }
+
+                const nameElem = document.createElement("h3");
+                nameElem.textContent = "Name: " + item.name;
+                newItem.appendChild(nameElem);
+
+                const priceElem = document.createElement("p");
+                priceElem.textContent = "Price: $" + item.price;
+                newItem.appendChild(priceElem);
+
+                const descElem = document.createElement("p");
+                descElem.textContent = "Description: " + item.description;
+                newItem.appendChild(descElem);
+
+                const contactElem = document.createElement("p");
+                contactElem.textContent = "Contact: " + item.contact;
+                newItem.appendChild(contactElem);
+
+                const deleteBtn = document.createElement("button");
+                deleteBtn.textContent = "Delete Item";
+                deleteBtn.onclick = function() {
+                    deleteItem(index);
+                };
+                newItem.appendChild(deleteBtn);
+
+                itemsSection.appendChild(newItem);
+            });
+        }
+
+        function deleteItem(index) {
+            const items = JSON.parse(localStorage.getItem("items")) || [];
+            items.splice(index, 1);
+            localStorage.setItem("items", JSON.stringify(items));
+            displayItems();
+        }
+
+        document.getElementById("itemForm").onsubmit = function(e) {
+            e.preventDefault();
+
+            const itemName = document.getElementById("itemName").value;
+            const itemPrice = document.getElementById("itemPrice").value;
+            const itemDescription = document.getElementById("itemDescription").value;
+            const itemContact = document.getElementById("itemContact").value;
+            const itemImage = document.getElementById("itemImage").files[0];
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageBase64 = e.target.result;
+                const items = JSON.parse(localStorage.getItem("items")) || [];
+
+                const newItem = {
+                    name: itemName,
+                    price: itemPrice,
+                    description: itemDescription,
+                    contact: itemContact,
+                    image: imageBase64
+                };
+
+                items.push(newItem);
+                localStorage.setItem("items", JSON.stringify(items));
+
+                displayItems();
+
+                modal.style.display = "none";
+                document.getElementById("itemForm").reset();
+            };
+
+            if (itemImage) {
+                reader.readAsDataURL(itemImage);
+            }
+        };
+
+        window.onload = displayItems;
+    </script>
+</body>
+</html>

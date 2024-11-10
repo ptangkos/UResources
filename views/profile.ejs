@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="topnav">
+        <h2>UResources</h2>
+        <a href="/logout">
+            <button class="login-btn" aria-label="Logout">Logout</button>
+        </a>
+    </div>
+
+    <ul>
+        <li><a href="/loggedhome">Home</a></li>
+        <li><a href="/buysell">Buy & Sell</a></li>
+        <li><a href="/rentrides">Rent & Rides</a></li>
+        <li><a href="/jobs">Jobs</a></li>
+    </ul>
+
+    <div class="main-content">
+        <h2>Your Profile</h2>
+
+
+        <div id="profileSection">
+            <img id="profilePic" src="/path/to/default/profile-pic.jpg" alt="Profile Picture" width="150" height="150">
+            <br>
+            <button id="changeProfilePicBtn" aria-label="Change Profile Picture">Change Profile Picture</button>
+            <input type="file" id="profilePicInput" accept="image/*">
+
+            <h3 id="username">Username: <span>JohnDoe</span></h3>
+            <p id="email">Email: <span>johndoe@example.com</span></p>
+            <button id="editProfileBtn">Edit Profile</button>
+        </div>
+
+
+        <div id="editProfileModal" class="modal">
+            <div class="modal-content">
+                <span class="close" aria-label="Close Modal">&times;</span>
+                <h2>Edit Profile</h2>
+                <form id="editProfileForm">
+                    <label for="newUsername">New Username:</label>
+                    <input type="text" id="newUsername" name="newUsername" required><br><br>
+
+                    <label for="newEmail">New Email:</label>
+                    <input type="email" id="newEmail" name="newEmail" required><br><br>
+
+                    <button type="submit" class="action-btn">Save Changes</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="itemsSection"></div>
+        <div id="jobsSection"></div>
+        <div id="ridesSection"></div>
+
+    </div>
+
+    <script>
+
+        const profilePicInput = document.getElementById('profilePicInput');
+        const profilePic = document.getElementById('profilePic');
+        const changeProfilePicBtn = document.getElementById('changeProfilePicBtn');
+
+        window.onload = () => {
+            const savedPic = localStorage.getItem('profilePic');
+            if (savedPic) {
+                profilePic.src = savedPic;
+            }
+            const savedUsername = localStorage.getItem("username");
+            const savedEmail = localStorage.getItem("email");
+            if (savedUsername) {
+                document.getElementById('username').querySelector('span').textContent = savedUsername;
+            }
+            if (savedEmail) {
+                document.getElementById('email').querySelector('span').textContent = savedEmail;
+            }
+            
+        }
+
+        changeProfilePicBtn.onclick = () => profilePicInput.click();
+
+        profilePicInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    profilePic.src = event.target.result;
+                    localStorage.setItem("profilePic", event.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+
+        const editProfileBtn = document.getElementById('editProfileBtn');
+        const editProfileModal = document.getElementById('editProfileModal');
+        const closeModal = document.getElementsByClassName('close')[0];
+
+        editProfileBtn.onclick = () => editProfileModal.style.display = "block";
+        closeModal.onclick = () => editProfileModal.style.display = "none";
+
+        window.onclick = (event) => {
+            if (event.target === editProfileModal) {
+                editProfileModal.style.display = "none";
+            }
+        };
+
+        window.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+                editProfileModal.style.display = "none";
+            }
+        });
+
+
+
+        document.getElementById("editProfileForm").onsubmit = (e) => {
+            e.preventDefault();
+
+            const newUsername = document.getElementById('newUsername').value;
+            const newEmail = document.getElementById('newEmail').value;
+
+            document.getElementById('username').querySelector('span').textContent = newUsername;
+            document.getElementById('email').querySelector('span').textContent = newEmail;
+
+            const savedUsername = localStorage.setItem("username", newUsername);
+            const savedEmail = localStorage.setItem("email", newEmail);
+
+            editProfileModal.style.display = "none";
+            document.getElementById("editProfileForm").reset();
+        };
+
+
+        function displaySection(sectionId, dataKey, itemType) {
+            const section = document.getElementById(sectionId);
+            section.innerHTML = `<h3>Your Posted ${itemType}</h3>`;
+
+            const items = JSON.parse(localStorage.getItem(dataKey)) || [];
+            items.forEach((item, index) => {
+                const newItem = document.createElement("div");
+                newItem.classList.add(itemType.toLowerCase());
+
+        
+                const img = document.createElement('img');
+                if (item.image) {
+                    img.src = item.image;
+                    img.height = 150;
+                    img.width = 150;
+                    newItem.appendChild(img);
+                }
+
+
+                Object.entries(item).forEach(([key, value]) => {
+                    const elem = document.createElement(key === 'name' ? 'h3' : 'p');
+                    elem.textContent = `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`;
+                    newItem.appendChild(elem);
+                });
+
+                const deleteBtn = document.createElement("button");
+                deleteBtn.textContent = `Delete ${itemType.slice(0, -1)}`;
+                deleteBtn.onclick = () => deleteItem(dataKey, index, sectionId, itemType);
+                newItem.appendChild(deleteBtn);
+
+                section.appendChild(newItem);
+            });
+        }
+
+        function deleteItem(dataKey, index, sectionId, itemType) {
+            const items = JSON.parse(localStorage.getItem(dataKey)) || [];
+            items.splice(index, 1);
+            localStorage.setItem(dataKey, JSON.stringify(items));
+            displaySection(sectionId, dataKey, itemType);
+        }
+
+
+        displaySection("itemsSection", "items", "Items");
+        displaySection("jobsSection", "jobs", "Jobs");
+        displaySection("ridesSection", "rides", "Rides");
+
+
+
+    </script>
+</body>
+</html>

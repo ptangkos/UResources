@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rent Rides</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="topnav">
+        <h2>UResources</h2>
+        <a href="/profile">
+            <button class="login-btn">Profile</button>
+        </a>
+    </div>
+
+    <ul>
+        <li><a href="/loggedhome">Home</a></li>
+        <li><a href="/buysell">Buy & Sell</a></li>
+        <li><a class="active" href="/rentrides">Rent & Rides</a></li>
+        <li><a href="/jobs">Jobs</a></li>
+    </ul>
+
+    <div class="main-content">
+        <h2>Rent Rides</h2>
+        <button id="postRideBtn">Post a Ride</button>
+
+        <input type="text" id="searchBar" placeholder="Search for rides or profiles..." onkeyup="searchRides()">
+        
+        <div id="rideModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Post a Ride</h2>
+                <form id="rideForm">
+                    <label for="profileName">Profile Name:</label>
+                    <input type="text" id="profileName" name="profileName" required><br><br>
+
+                    <label for="carName">Car Name:</label>
+                    <input type="text" id="carName" name="carName" required><br><br>
+
+                    <label for="rideCost">Cost of Ride:</label>
+                    <input type="number" id="rideCost" name="rideCost" required><br><br>
+
+                    <label for="seatsAvailable">Seats Available:</label>
+                    <input type="number" id="seatsAvailable" name="seatsAvailable" required><br><br>
+
+                    <label for="departure">Departure:</label>
+                    <input type="text" id="departure" name="departure" required><br><br>
+
+                    <label for="destination">Destination:</label>
+                    <input type="text" id="destination" name="destination" required><br><br>
+
+                    <label for="contactInfo">Contact Information:</label>
+                    <input type="text" id="contactInfo" name="contactInfo" required><br><br>
+
+                    <button type="submit">Submit</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="ridesSection">
+            <h3>Available Rides</h3>
+
+        </div>
+        <button onclick="location.href='/card_index'" class="redirect-btn">Go to Card Index</button>
+
+    </div>
+
+    <script>
+
+        var rideModal = document.getElementById("rideModal");
+        var postRideBtn = document.getElementById("postRideBtn");
+        var closeBtn = document.getElementsByClassName("close")[0];
+
+        postRideBtn.onclick = function() {
+            rideModal.style.display = "block";
+        }
+
+        closeBtn.onclick = function() {
+            rideModal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == rideModal) {
+                rideModal.style.display = "none";
+            }
+        }
+
+        document.getElementById("rideForm").onsubmit = function(e) {
+            e.preventDefault();
+
+            var profileName = document.getElementById("profileName").value;
+            var carName = document.getElementById("carName").value;
+            var rideCost = document.getElementById("rideCost").value;
+            var seatsAvailable = document.getElementById("seatsAvailable").value;
+            var departure = document.getElementById("departure").value;
+            var destination = document.getElementById("destination").value;
+            var contactInfo = document.getElementById("contactInfo").value;
+
+            var newRide = {
+                profileName: profileName,
+                carName: carName,
+                rideCost: rideCost,
+                seatsAvailable: seatsAvailable,
+                departure: departure,
+                destination: destination,
+                contactInfo: contactInfo
+            };
+
+            var rides = JSON.parse(localStorage.getItem("rides")) || [];
+
+            rides.push(newRide);
+            localStorage.setItem("rides", JSON.stringify(rides));
+
+            loadRides();
+
+            rideModal.style.display = "none";
+            this.reset(); 
+        }
+
+        function loadRides() {
+            var ridesSection = document.getElementById("ridesSection");
+            ridesSection.innerHTML = "<h3>Available Rides</h3>"; 
+
+            var rides = JSON.parse(localStorage.getItem("rides")) || [];
+            
+            rides.forEach(function(ride, index) {
+                var rideDiv = document.createElement("div");
+                rideDiv.classList.add("ride");
+
+                rideDiv.innerHTML = `
+                    <h3>Profile: ${ride.profileName}</h3>
+                    <h4>Car: ${ride.carName}</h4>
+                    <p>Cost: $${ride.rideCost}</p>
+                    <p>Seats Available: ${ride.seatsAvailable}</p>
+                    <p>Departure: ${ride.departure}</p>
+                    <p>Destination: ${ride.destination}</p>
+                    <p>Contact: ${ride.contactInfo}</p>
+                    <button class="delete-btn" onclick="deleteRide(${index})">Delete</button>
+                `;
+                ridesSection.appendChild(rideDiv);
+            });
+        }
+
+        function deleteRide(index) {
+            var rides = JSON.parse(localStorage.getItem("rides")) || [];
+            rides.splice(index, 1);
+            localStorage.setItem("rides", JSON.stringify(rides));
+            loadRides();
+        }
+        function searchRides() {
+            var input = document.getElementById("searchBar").value.toLowerCase();
+            var rideListings = document.getElementsByClassName("ride");
+
+            Array.from(rideListings).forEach(function(ride) {
+                var car = ride.querySelector("h4").textContent.toLowerCase();
+                var profile = ride.querySelector("h3").textContent.toLowerCase();
+
+                if (car.includes(input) || profile.includes(input)) {
+                    ride.style.display = "";
+                } else {
+                    ride.style.display = "none";
+                }
+            });
+        }
+
+        window.onload = loadRides;
+    </script>
+</body>
+</html>
