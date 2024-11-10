@@ -18,6 +18,9 @@ Express.js : Helps in creating the API endpoints for logging in users, handling 
 **Payment section**<br />
         Stripe’s Payment Intent AP.<br />
 
+# Before Running the code
+replace 'sk_yourPublicKey' with your stripe api public key in app.js file
+replace 'sk_yourSecretKey' with your stripe api Secret key in views/card_index.ejs file
 
 
 
